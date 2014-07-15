@@ -1,6 +1,6 @@
 # uberimage
 
-A Leiningen plugin to generate a [docker][docker] image that runs a project's uberjar.
+A Leiningen plugin to generate a [docker](http://www.docker.com/) image that runs a project's uberjar.
 
 ## Usage
 
@@ -49,5 +49,3 @@ Copyright © 2014 Hugo Duncan
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
-
-[docker]:http://www.docker.com/ Docker
