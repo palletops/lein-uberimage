@@ -4,7 +4,7 @@ A Leiningen plugin to generate a [docker][docker] image that runs a project's ub
 
 ## Usage
 
-Put `[com.palletops/uberimage "0.1.1"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.1.2"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage
