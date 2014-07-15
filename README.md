@@ -11,19 +11,33 @@ Put `[com.palletops/uberimage "0.1.1"]` into the `:plugins` vector of your
 
 The plugin will report the uuid of the generated image.
 
+## Options
+
+By default, the docker API is assumed to be on
+`http://localhost:2375`.  You can override this by setting the
+`DOCKER_ENDPOINT` environment variable, or using the `-H` option, e.g.
+
+```
+lein uberimage -H http://localhost:4243
+```
+
+The base image used to construct the image can be specified using
+`-b`.
+
+```
+lein uberimage -b your-image-with-jvm
+```
+
 ## Limitations
 
-Depends on leiningen master branch.
+Depends on leiningen master branch.  Requires docker api on a TCP
+socket.
 
 ## TODO
-
-Allow specification of docker endpoint.
 
 Allow choice of running AOT's with -jar, or non AOT'd with clojure.main.
 
 Allow choice of java runtime.
-
-Allow choice of base image.
 
 Use `-t` to specify a tag.
 

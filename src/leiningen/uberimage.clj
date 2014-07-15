@@ -2,6 +2,9 @@
   (:require
    [clojure.core.async :refer [thread]]
    [clojure.java.io :refer [copy file]]
+   [clojure.stacktrace :refer [root-cause]]
+   [clojure.string :as string]
+   [clojure.tools.cli :refer [parse-opts]]
    [com.palletops.docker :refer [build image-create]]
    [com.palletops.docker.utils
     :refer [tar-output-stream tar-entry-from-file tar-entry-from-string]]
@@ -9,12 +12,6 @@
    [leiningen.jar :refer [get-jar-filename]]
    [leiningen.uberjar :refer [uberjar]]
    [taoensso.timbre :as timbre :refer [merge-config! str-println]]))
-
-(def defaults
-  {:base-image "pallet/java"
-   :endpoint "http://localhost:4243"
-   ;; "http://localhost:2375"
-   })
 
 (defn dockerfile
   "Return a dockerfile string"
@@ -51,17 +48,42 @@ CMD [\"/usr/bin/java\", \"-jar\", \"uberjar.jar\"]"
   (if-not (System/getenv "DEBUG")
     (merge-config! info-timbre-config)))
 
-(defn uberimage
-  "Generate a docker image to run an uberjar.'"
+(def cli-options
+  ;; An option with a required argument
+  [["-H" "--endpoint ENDPOINT" "Endpoint for docker TCP port"
+    :default (or (System/getenv "DOCKER_ENDPOINT") "http://localhost:2375")
+    :validate [#(java.net.URL. %) "Must be a URL"]]
+   ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
+    :default "pallet/java"
+    :validate [#(string? %) "Must be a string"]]])
+
+(defn help
+  []
+  (str
+   "Generate a docker image to run an uberjar."
+   \newline \newline
+   (:summary (parse-opts [] cli-options))
+   \newline \newline
+   "The docker endpoint defaults to the DOCKER_ENDPOINT environment variable"))
+
+(defn ^{:doc (help)} uberimage
   [project & args]
-  (let [options defaults]
+  (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
+        {:keys [base-image endpoint]} options]
+    (when errors
+      (throw (ex-info
+              (str "Invalid arguments: " (string/join " " errors))
+              {:cli-options cli-options
+               :args args
+               :exit-code 1})))
     (configure-logging)
     (try
       (uberjar project)
       (catch Exception e
         (when main/*debug*
           (.printStackTrace e))
-        (throw (ex-info "Uberimage aborting because uberjar failed:" {} e))))
+        (throw
+         (ex-info "Uberimage aborting because uberjar failed:" {} e))))
     (let [{:keys [piped-input-stream piped-output-stream tar-output-stream]}
           (tar-output-stream)
           jarfile (get-jar-filename project :standalone)]
@@ -75,12 +97,17 @@ CMD [\"/usr/bin/java\", \"-jar\", \"uberjar.jar\"]"
          jarfile
          options))
       (let [resp (try
-                   (build {:url (:endpoint options)} {:body piped-input-stream})
+                   (build
+                    {:url (:endpoint options)}
+                    {:body piped-input-stream})
                    (catch java.net.ConnectException e
                      (throw
                       (ex-info
-                       (str "Error in docker build using " (:endpoint options))
-                       {} e))))
+                       (str "Error in docker build using "
+                            (:endpoint options) ".  "
+                            (.getMessage (root-cause e)))
+                       {:exit-code 1}
+                       e))))
             s (-> resp :body last :stream)
             id (if s
                  (second (re-find #"Successfully built ([0-9a-f]+)" s)))]
