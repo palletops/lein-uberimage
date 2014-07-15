@@ -1,3 +1,11 @@
+## 0.1.2
+
+- Add options for docker endpoint and base image
+  Allow specification of the docker endpoint using the DOCKER_ENDPOINT 
+  environment variable or the -H command line option.
+
+  Allow specification of the base image with the `-b` comand line option.
+
 ## 0.1.1
 
 - Only print generated image id
