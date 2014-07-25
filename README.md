@@ -42,18 +42,19 @@ needs to open incoming ports, you need to bind the container port to
 a host port, running your container this way instead:
 
 ```
-docker run generate-dimage-uuid -p 3000:3000
+docker run generate-dimage-uuid -p 3000:8080
 ```
 
-where the first '3000' is the port where your service listens on
-the container, and the second '3000' is the port you want your service
-to listen to on the host.
+where the `3000` is the port where your service listens on
+the container, and the `8080` is the port you want your service
+to listen to on the host. Then, open your browser and type
+`http://<docker-host-ip>:8080/...` to access your service.
 
 ## Limitations
 
-Currently your project needs to build with lein uberjar (as lein
-uberimage invokes uberjar) and you must supply a :main so that the
-uberjar is executable via java -jar.
+Currently your project needs to build with lein uberjar (as `lein
+uberimage` invokes `uberjar`) and you must supply a `:main` so that the
+uberjar is executable via `java -jar`.
 
 Depends on leiningen master branch (specifically requires commit
 [2cfca444](https://github.com/technomancy/leiningen/commit/2cfca444fe37135637a4efbe9f004d4ce5fe51c7)).
