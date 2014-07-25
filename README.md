@@ -32,6 +32,9 @@ lein uberimage -b your-image-with-jvm
 
 Depends on leiningen master branch (specifically requires commit
 [2cfca444](https://github.com/technomancy/leiningen/commit/2cfca444fe37135637a4efbe9f004d4ce5fe51c7)).
+See
+[leiningen contributing docs](https://github.com/technomancy/leiningen/blob/master/CONTRIBUTING.md#user-content-bootstrapping)
+for how to run leiningen from master.
 
 Requires docker api on a TCP
 socket (eg. for
