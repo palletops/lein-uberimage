@@ -9,7 +9,8 @@ Put `[com.palletops/uberimage "0.1.2"]` into the `:plugins` vector of your
 
     $ lein uberimage
 
-The plugin will report the uuid of the generated image.
+The plugin will run 'uberjar' on your project, generate the docker
+image with your uberjar in it, and report the uuid of the generated image.
 
 ## Options
 
@@ -28,7 +29,31 @@ The base image used to construct the image can be specified using
 lein uberimage -b your-image-with-jvm
 ```
 
+## Running your container
+
+Once the image is built, you can run it via docker with
+
+```
+docker run generated-image-uuid
+```
+
+By default your image doesn't have any ports mapped. If your service
+needs to open incoming ports, you need to bind the container port to
+a host port, running your container this way instead:
+
+```
+docker run generate-dimage-uuid -p 3000:3000
+```
+
+where the first '3000' is the port where your service listens on
+the container, and the second '3000' is the port you want your service
+to listen to on the host.
+
 ## Limitations
+
+Currently your project needs to build with lein uberjar (as lein
+uberimage invokes uberjar) and you must supply a :main so that the
+uberjar is executable via java -jar.
 
 Depends on leiningen master branch (specifically requires commit
 [2cfca444](https://github.com/technomancy/leiningen/commit/2cfca444fe37135637a4efbe9f004d4ce5fe51c7)).
