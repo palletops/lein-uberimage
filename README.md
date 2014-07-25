@@ -31,7 +31,10 @@ lein uberimage -b your-image-with-jvm
 ## Limitations
 
 Depends on leiningen master branch.  Requires docker api on a TCP
-socket.
+socket (eg. for
+[plain docker](https://docs.docker.com/articles/basics/#bind-docker-to-another-hostport-or-a-unix-socket)
+or on
+[coreos](http://coreos.com/docs/launching-containers/building/customizing-docker/)).
 
 ## TODO
 
