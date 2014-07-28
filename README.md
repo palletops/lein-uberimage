@@ -42,7 +42,7 @@ needs to open incoming ports, you need to bind the container port to
 a host port, running your container this way instead:
 
 ```
-docker run generate-dimage-uuid -p 3000:8080
+docker run generated-image-uuid -p 3000:8080
 ```
 
 where the `3000` is the port where your service listens on
