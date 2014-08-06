@@ -56,11 +56,7 @@ Currently your project needs to build with lein uberjar (as `lein
 uberimage` invokes `uberjar`) and you must supply a `:main` so that the
 uberjar is executable via `java -jar`.
 
-Depends on leiningen master branch (specifically requires commit
-[2cfca444](https://github.com/technomancy/leiningen/commit/2cfca444fe37135637a4efbe9f004d4ce5fe51c7)).
-See
-[leiningen contributing docs](https://github.com/technomancy/leiningen/blob/master/CONTRIBUTING.md#user-content-bootstrapping)
-for how to run leiningen from master.
+Depends on leiningen 2.4.3 or later.
 
 Requires docker api on a TCP
 socket (eg. for
