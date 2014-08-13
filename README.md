@@ -58,6 +58,8 @@ uberjar is executable via `java -jar`.
 
 Depends on leiningen 2.4.3 or later.
 
+Using a `:target-path` with a `%s` is it seems to break the plugin.
+
 Requires docker api on a TCP
 socket (eg. for
 [plain docker](https://docs.docker.com/articles/basics/#bind-docker-to-another-hostport-or-a-unix-socket)
