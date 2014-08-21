@@ -18,7 +18,7 @@
   [{:keys [base-image]}]
   (format "FROM %s
 ADD uberjar.jar uberjar.jar
-CMD [\"/usr/bin/java\", \"-jar\", \"uberjar.jar\"]"
+CMD [\"/usr/bin/java\", \"-jar\", \"/uberjar.jar\"]"
           base-image))
 
 (defn buildtar
