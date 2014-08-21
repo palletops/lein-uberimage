@@ -1,15 +1,16 @@
 # uberimage
 
-A Leiningen plugin to generate a [docker][docker] image that runs a project's uberjar.
+A Leiningen plugin to generate a [docker](http://www.docker.com/) image that runs a project's uberjar.
 
 ## Usage
 
-Put `[com.palletops/uberimage "0.1.2"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.1.3"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage
 
-The plugin will report the uuid of the generated image.
+The plugin will run 'uberjar' on your project, generate the docker
+image with your uberjar in it, and report the uuid of the generated image.
 
 ## Options
 
@@ -28,10 +29,42 @@ The base image used to construct the image can be specified using
 lein uberimage -b your-image-with-jvm
 ```
 
+## Running your container
+
+Once the image is built, you can run it via docker with
+
+```
+docker run generated-image-uuid
+```
+
+By default your image doesn't have any ports mapped. If your service
+needs to open incoming ports, you need to bind the container port to
+a host port, running your container this way instead:
+
+```
+docker run generated-image-uuid -p 3000:8080
+```
+
+where the `3000` is the port where your service listens on
+the container, and the `8080` is the port you want your service
+to listen to on the host. Then, open your browser and type
+`http://<docker-host-ip>:8080/...` to access your service.
+
 ## Limitations
 
-Depends on leiningen master branch.  Requires docker api on a TCP
-socket.
+Currently your project needs to build with lein uberjar (as `lein
+uberimage` invokes `uberjar`) and you must supply a `:main` so that the
+uberjar is executable via `java -jar`.
+
+Depends on leiningen 2.4.3 or later.
+
+Using a `:target-path` with a `%s` is it seems to break the plugin.
+
+Requires docker api on a TCP
+socket (eg. for
+[plain docker](https://docs.docker.com/articles/basics/#bind-docker-to-another-hostport-or-a-unix-socket)
+or on
+[coreos](http://coreos.com/docs/launching-containers/building/customizing-docker/)).
 
 ## TODO
 
@@ -49,5 +82,3 @@ Copyright © 2014 Hugo Duncan
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
-
-[docker]:http://www.docker.com/ Docker

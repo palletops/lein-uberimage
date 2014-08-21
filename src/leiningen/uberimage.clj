@@ -18,7 +18,7 @@
   [{:keys [base-image]}]
   (format "FROM %s
 ADD uberjar.jar uberjar.jar
-CMD [\"/usr/bin/java\", \"-jar\", \"uberjar.jar\"]"
+CMD [\"/usr/bin/java\", \"-jar\", \"/uberjar.jar\"]"
           base-image))
 
 (defn buildtar
@@ -55,7 +55,7 @@ CMD [\"/usr/bin/java\", \"-jar\", \"uberjar.jar\"]"
     :validate [#(java.net.URL. %) "Must be a URL"]]
    ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
     :default "pallet/java"
-    :validate [#(string? %) "Must be a string"]]])
+    :validate [string? "Must be a string"]]])
 
 (defn help
   []
@@ -77,18 +77,17 @@ CMD [\"/usr/bin/java\", \"-jar\", \"uberjar.jar\"]"
                :args args
                :exit-code 1})))
     (configure-logging)
-    (try
-      (uberjar project)
-      (catch Exception e
-        (when main/*debug*
-          (.printStackTrace e))
-        (throw
-         (ex-info "Uberimage aborting because uberjar failed:" {} e))))
     (let [{:keys [piped-input-stream piped-output-stream tar-output-stream]}
           (tar-output-stream)
-          jarfile (get-jar-filename project :standalone)]
+          jarfile (try
+                    (uberjar project)
+                    (catch Exception e
+                      (when main/*debug*
+                        (.printStackTrace e))
+                      (throw
+                       (ex-info "Uberimage aborting because uberjar failed:" {} e))))]
       (main/info "Using jar file" jarfile)
-      (when-not (.exists (file jarfile))
+      (when (or (nil? jarfile) (not (.exists (file jarfile))))
         (throw (ex-info "Jar file does not exist" {:exit-code 1})))
       (thread
         (buildtar
