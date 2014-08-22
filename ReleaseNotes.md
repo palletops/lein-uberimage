@@ -1,3 +1,22 @@
+## 0.1.4
+
+- Specify command and extra files in project.clj
+  Allows config to be given in project.clj with the form :
+
+      :uberimage {:cmd ["/bin/dash" "/myrunscript" "param1" "param2"]
+                  :files {"myrunscript" "docker/myrunscript"}}
+
+  - The :cmd value maps directly to a Dockerfile CMD statement
+
+  - The :files value is a map of additional files to be copied into the
+   docker image. Keys are docker image target paths and values are lein
+   project source paths
+
+  This permits more flexibility in starting the containerized program,
+  allowing things such as configuring extra environment with a script.
+
+- Add a CONTRIBUTING.md file
+
 ## 0.1.3
 
 - Reference uberjar with an absolute path

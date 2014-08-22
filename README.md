@@ -4,7 +4,7 @@ A Leiningen plugin to generate a [docker](http://www.docker.com/) image that run
 
 ## Usage
 
-Put `[com.palletops/uberimage "0.1.3"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.1.4"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage
@@ -49,6 +49,21 @@ where the `3000` is the port where your service listens on
 the container, and the `8080` is the port you want your service
 to listen to on the host. Then, open your browser and type
 `http://<docker-host-ip>:8080/...` to access your service.
+
+## Configuration
+
+The `project.clj` `:uberimage` key can be used to configure the
+image's `CMD` and to place extra files into the image.
+
+```clj
+:uberimage {:cmd ["/bin/dash" "/myrunscript" "param1" "param2"]
+            :files {"myrunscript" "docker/myrunscript"}}
+
+The `:cmd` value maps directly to a Dockerfile CMD statement
+
+The `:files` value is a map of additional files to be copied into the
+docker image. Keys are docker image target paths and values are lein
+project source paths.
 
 ## Limitations
 
