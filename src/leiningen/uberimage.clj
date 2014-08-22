@@ -15,22 +15,32 @@
 
 (defn dockerfile
   "Return a dockerfile string"
-  [{:keys [base-image]}]
-  (format "FROM %s
-ADD uberjar.jar uberjar.jar
-CMD [\"/usr/bin/java\", \"-jar\", \"/uberjar.jar\"]"
-          base-image))
+  [{:keys [cmd files base-image]}]
+  (let [cmd (or cmd ["/usr/bin/java" "-jar" "/uberjar.jar"])
+        cmd (if (sequential? cmd) cmd [cmd])
+        cmd-str (->> (for [s cmd] (str "\"" s "\""))
+                     (string/join ","))]
+    (->> (concat [(str "FROM " base-image)
+                  "ADD uberjar.jar uberjar.jar"
+                  (str "CMD [" cmd-str "]")]
+                 (for [[tar-path local-path] files]
+                   (str "ADD " tar-path " " tar-path)))
+         (string/join "\n"))))
 
 (defn buildtar
   "Return an InputStream that will deliver a tar archive with a Dockerfile
   and the uberjar."
-  [tar-output-stream piped-output-stream standalone-filename options]
+  [tar-output-stream piped-output-stream standalone-filename
+   {:keys [files] :as options}]
   (with-open [piped-output-stream piped-output-stream
               tar-output-stream tar-output-stream]
     (tar-entry-from-string
      tar-output-stream "Dockerfile" (dockerfile options))
     (tar-entry-from-file
-     tar-output-stream "uberjar.jar" (file standalone-filename))))
+     tar-output-stream "uberjar.jar" (file standalone-filename))
+    (doseq [[tar-path local-path] files]
+      (tar-entry-from-file
+       tar-output-stream tar-path (file local-path)))))
 
 (def info-timbre-config
   "A basic timbre configuration for use with info level logging."
@@ -69,7 +79,8 @@ CMD [\"/usr/bin/java\", \"-jar\", \"/uberjar.jar\"]"
 (defn ^{:doc (help)} uberimage
   [project & args]
   (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
-        {:keys [base-image endpoint]} options]
+        {:keys [base-image endpoint]} options
+        options (merge (:uberimage project) options)]
     (when errors
       (throw (ex-info
               (str "Invalid arguments: " (string/join " " errors))
