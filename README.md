@@ -2,6 +2,8 @@
 
 A Leiningen plugin to generate a [docker](http://www.docker.com/) image that runs a project's uberjar.
 
+Requires _leiningen 2.4.3 or later_.
+
 ## Usage
 
 Put `[com.palletops/uberimage "0.1.4"]` into the `:plugins` vector of your
