@@ -58,6 +58,7 @@ image's `CMD` and to place extra files into the image.
 ```clj
 :uberimage {:cmd ["/bin/dash" "/myrunscript" "param1" "param2"]
             :files {"myrunscript" "docker/myrunscript"}}
+```
 
 The `:cmd` value maps directly to a Dockerfile CMD statement
 
