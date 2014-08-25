@@ -27,6 +27,18 @@
                    (str "ADD " tar-path " " tar-path)))
          (string/join "\n"))))
 
+(defn tar-file-or-dir
+  [out tar-path local-file]
+  (cond
+     (.isFile local-file)
+     (tar-entry-from-file out tar-path local-file)
+
+     (.isDirectory local-file)
+     (doseq [subdir-file (.listFiles local-file)]
+       (tar-file-or-dir out
+                        (str tar-path "/" (.getName subdir-file))
+                        subdir-file))))
+
 (defn buildtar
   "Return an InputStream that will deliver a tar archive with a Dockerfile
   and the uberjar."
@@ -39,8 +51,7 @@
     (tar-entry-from-file
      tar-output-stream "uberjar.jar" (file standalone-filename))
     (doseq [[tar-path local-path] files]
-      (tar-entry-from-file
-       tar-output-stream tar-path (file local-path)))))
+      (tar-file-or-dir tar-output-stream tar-path (file local-path)))))
 
 (def info-timbre-config
   "A basic timbre configuration for use with info level logging."
