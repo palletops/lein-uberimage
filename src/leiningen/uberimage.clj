@@ -76,6 +76,10 @@
     :validate [#(java.net.URL. %) "Must be a URL"]]
    ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
     :default "pallet/java"
+    :validate [string? "Must be a string"]]
+   ["-t" "--tag TAG"
+    (str "Repository name (and optionally a tag) to be applied to the "
+         "resulting image in case of success")
     :validate [string? "Must be a string"]]])
 
 (defn help
@@ -86,6 +90,13 @@
    (:summary (parse-opts [] cli-options))
    \newline \newline
    "The docker endpoint defaults to the DOCKER_ENDPOINT environment variable"))
+
+(defn filter-api-params
+  "filter API parameters, retaining only those with non-nil values"
+  [params]
+  (->> params
+       (filter (fn [[k v]] v))
+       (into {})))
 
 (defn ^{:doc (help)} uberimage
   [project & args]
@@ -120,7 +131,8 @@
       (let [resp (try
                    (build
                     {:url (:endpoint options)}
-                    {:body piped-input-stream})
+                    (filter-api-params {:body piped-input-stream
+                                        :t (:tag options)}))
                    (catch java.net.ConnectException e
                      (throw
                       (ex-info
