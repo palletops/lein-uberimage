@@ -1,3 +1,11 @@
+## 0.1.5
+
+- Allow specifying a repository and tag for generated images
+  Can be specified through the `-t` command line option or the
+  `[:uberimage :tag]` project key.
+
+- Permit the copying of directories to the image
+
 ## 0.1.4
 
 - Specify command and extra files in project.clj

@@ -2,9 +2,11 @@
 
 A Leiningen plugin to generate a [docker](http://www.docker.com/) image that runs a project's uberjar.
 
+Requires _leiningen 2.4.3 or later_.
+
 ## Usage
 
-Put `[com.palletops/uberimage "0.1.4"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.1.5"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage
@@ -27,6 +29,13 @@ The base image used to construct the image can be specified using
 
 ```
 lein uberimage -b your-image-with-jvm
+```
+
+The repository name (and optionally a tag) to be applied to the
+resulting image in case of success can be specified using `-t`.
+
+```
+lein uberimage -t user/repo:tag
 ```
 
 ## Running your container
@@ -57,13 +66,18 @@ image's `CMD` and to place extra files into the image.
 
 ```clj
 :uberimage {:cmd ["/bin/dash" "/myrunscript" "param1" "param2"]
-            :files {"myrunscript" "docker/myrunscript"}}
+            :files {"myrunscript" "docker/myrunscript"}
+            :tag "user/repo:tag"}
+```
 
 The `:cmd` value maps directly to a Dockerfile CMD statement
 
 The `:files` value is a map of additional files to be copied into the
 docker image. Keys are docker image target paths and values are lein
 project source paths.
+
+The `:tag` value supplies a repository name (and optionally a tag) to
+be applied to the resulting image in case of success.
 
 ## Limitations
 
@@ -86,8 +100,6 @@ or on
 Allow choice of running AOT's with -jar, or non AOT'd with clojure.main.
 
 Allow choice of java runtime.
-
-Use `-t` to specify a tag.
 
 Use `-p` to push the resulting image to a repository.
 
