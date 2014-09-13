@@ -6,7 +6,7 @@ Requires _leiningen 2.4.3 or later_.
 
 ## Usage
 
-Put `[com.palletops/uberimage "0.1.5"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.2.0"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage
@@ -14,29 +14,9 @@ Put `[com.palletops/uberimage "0.1.5"]` into the `:plugins` vector of your
 The plugin will run 'uberjar' on your project, generate the docker
 image with your uberjar in it, and report the uuid of the generated image.
 
-## Options
-
-By default, the docker API is assumed to be on
-`http://localhost:2375`.  You can override this by setting the
-`DOCKER_ENDPOINT` environment variable, or using the `-H` option, e.g.
-
-```
-lein uberimage -H http://localhost:4243
-```
-
-The base image used to construct the image can be specified using
-`-b`.
-
-```
-lein uberimage -b your-image-with-jvm
-```
-
-The repository name (and optionally a tag) to be applied to the
-resulting image in case of success can be specified using `-t`.
-
-```
-lein uberimage -t user/repo:tag
-```
+Note that if you have not already pulled the base image (eg. with
+`docker pull pallet/java`), then it might take some while for the
+image generation to complete.
 
 ## Running your container
 
@@ -79,6 +59,33 @@ project source paths.
 The `:tag` value supplies a repository name (and optionally a tag) to
 be applied to the resulting image in case of success.
 
+The `:base-image` value is used to specify the base image from which
+the project image is built (defaults to `pallet/java`).
+
+## Options
+
+By default, the docker API is assumed to be on
+`http://localhost:2375`.  You can override this by setting the
+`DOCKER_ENDPOINT` environment variable, or using the `-H` option, e.g.
+
+```
+lein uberimage -H http://localhost:4243
+```
+
+The base image used to construct the image can be specified using
+`-b`.
+
+```
+lein uberimage -b your-image-with-jvm
+```
+
+The repository name (and optionally a tag) to be applied to the
+resulting image in case of success can be specified using `-t`.
+
+```
+lein uberimage -t user/repo:tag
+```
+
 ## Limitations
 
 Currently your project needs to build with lein uberjar (as `lein
@@ -89,11 +96,12 @@ Depends on leiningen 2.4.3 or later.
 
 Using a `:target-path` with a `%s` is it seems to break the plugin.
 
-Requires docker api on a TCP
-socket (eg. for
+Requires docker api on a TCP socket (eg. for
 [plain docker](https://docs.docker.com/articles/basics/#bind-docker-to-another-hostport-or-a-unix-socket)
 or on
 [coreos](http://coreos.com/docs/launching-containers/building/customizing-docker/)).
+Other examples of enabling the API:
+[on ubuntu](http://www.virtuallyghetto.com/2014/07/quick-tip-how-to-enable-docker-remote-api.html).
 
 ## TODO
 

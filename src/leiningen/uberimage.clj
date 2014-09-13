@@ -27,22 +27,12 @@
                    (str "ADD " tar-path " " tar-path)))
          (string/join "\n"))))
 
-(defn tar-file-or-dir
-  [out tar-path local-file]
-  (cond
-     (.isFile local-file)
-     (tar-entry-from-file out tar-path local-file)
-
-     (.isDirectory local-file)
-     (doseq [subdir-file (.listFiles local-file)]
-       (tar-file-or-dir out
-                        (str tar-path "/" (.getName subdir-file))
-                        subdir-file))))
-
 (defn buildtar
   "Return an InputStream that will deliver a tar archive with a Dockerfile
   and the uberjar."
-  [tar-output-stream piped-output-stream standalone-filename
+  [^java.io.OutputStream tar-output-stream
+   ^java.io.OutputStream piped-output-stream
+   standalone-filename
    {:keys [files] :as options}]
   (with-open [piped-output-stream piped-output-stream
               tar-output-stream tar-output-stream]
@@ -51,7 +41,7 @@
     (tar-entry-from-file
      tar-output-stream "uberjar.jar" (file standalone-filename))
     (doseq [[tar-path local-path] files]
-      (tar-file-or-dir tar-output-stream tar-path (file local-path)))))
+      (tar-entry-from-file tar-output-stream tar-path (file local-path)))))
 
 (def info-timbre-config
   "A basic timbre configuration for use with info level logging."
@@ -75,7 +65,6 @@
     :default (or (System/getenv "DOCKER_ENDPOINT") "http://localhost:2375")
     :validate [#(java.net.URL. %) "Must be a URL"]]
    ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
-    :default "pallet/java"
     :validate [string? "Must be a string"]]
    ["-t" "--tag TAG"
     (str "Repository name (and optionally a tag) to be applied to the "
@@ -102,7 +91,9 @@
   [project & args]
   (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
         {:keys [base-image endpoint]} options
-        options (merge (:uberimage project) options)]
+        options (merge {:base-image "pallet/java"}
+                       (:uberimage project)
+                       options)]
     (when errors
       (throw (ex-info
               (str "Invalid arguments: " (string/join " " errors))
@@ -118,7 +109,8 @@
                       (when main/*debug*
                         (.printStackTrace e))
                       (throw
-                       (ex-info "Uberimage aborting because uberjar failed:" {} e))))]
+                       (ex-info "Uberimage aborting because uberjar failed:"
+                                {} e))))]
       (main/info "Using jar file" jarfile)
       (when (or (nil? jarfile) (not (.exists (file jarfile))))
         (throw (ex-info "Jar file does not exist" {:exit-code 1})))
@@ -138,7 +130,7 @@
                       (ex-info
                        (str "Error in docker build using "
                             (:endpoint options) ".  "
-                            (.getMessage (root-cause e)))
+                            (.getMessage ^Throwable (root-cause e)))
                        {:exit-code 1}
                        e))))
             s (-> resp :body last :stream)
