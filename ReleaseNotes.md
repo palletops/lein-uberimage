@@ -1,3 +1,16 @@
+## 0.2.0
+
+- Add comment on pulling base image to README
+  Addresses #11
+
+- Add extra link to readme on docker api setup
+  Closes #12
+
+- Allow :base-image to be specified in project.clj
+  Closes #13.
+
+- Update to clj-docker 0.1.2
+
 ## 0.1.5
 
 - Allow specifying a repository and tag for generated images
