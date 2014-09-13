@@ -92,11 +92,12 @@ Depends on leiningen 2.4.3 or later.
 
 Using a `:target-path` with a `%s` is it seems to break the plugin.
 
-Requires docker api on a TCP
-socket (eg. for
+Requires docker api on a TCP socket (eg. for
 [plain docker](https://docs.docker.com/articles/basics/#bind-docker-to-another-hostport-or-a-unix-socket)
 or on
 [coreos](http://coreos.com/docs/launching-containers/building/customizing-docker/)).
+Other examples of enabling the API:
+[on ubuntu](http://www.virtuallyghetto.com/2014/07/quick-tip-how-to-enable-docker-remote-api.html).
 
 ## TODO
 
