@@ -14,30 +14,6 @@ Put `[com.palletops/uberimage "0.1.5"]` into the `:plugins` vector of your
 The plugin will run 'uberjar' on your project, generate the docker
 image with your uberjar in it, and report the uuid of the generated image.
 
-## Options
-
-By default, the docker API is assumed to be on
-`http://localhost:2375`.  You can override this by setting the
-`DOCKER_ENDPOINT` environment variable, or using the `-H` option, e.g.
-
-```
-lein uberimage -H http://localhost:4243
-```
-
-The base image used to construct the image can be specified using
-`-b`.
-
-```
-lein uberimage -b your-image-with-jvm
-```
-
-The repository name (and optionally a tag) to be applied to the
-resulting image in case of success can be specified using `-t`.
-
-```
-lein uberimage -t user/repo:tag
-```
-
 ## Running your container
 
 Once the image is built, you can run it via docker with
@@ -78,6 +54,33 @@ project source paths.
 
 The `:tag` value supplies a repository name (and optionally a tag) to
 be applied to the resulting image in case of success.
+
+The `:base-image` value is used to specify the base image from which
+the project image is built (defaults to `pallet/java`).
+
+## Options
+
+By default, the docker API is assumed to be on
+`http://localhost:2375`.  You can override this by setting the
+`DOCKER_ENDPOINT` environment variable, or using the `-H` option, e.g.
+
+```
+lein uberimage -H http://localhost:4243
+```
+
+The base image used to construct the image can be specified using
+`-b`.
+
+```
+lein uberimage -b your-image-with-jvm
+```
+
+The repository name (and optionally a tag) to be applied to the
+resulting image in case of success can be specified using `-t`.
+
+```
+lein uberimage -t user/repo:tag
+```
 
 ## Limitations
 

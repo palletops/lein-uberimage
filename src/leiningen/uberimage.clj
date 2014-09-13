@@ -77,7 +77,6 @@
     :default (or (System/getenv "DOCKER_ENDPOINT") "http://localhost:2375")
     :validate [#(java.net.URL. %) "Must be a URL"]]
    ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
-    :default "pallet/java"
     :validate [string? "Must be a string"]]
    ["-t" "--tag TAG"
     (str "Repository name (and optionally a tag) to be applied to the "
@@ -104,7 +103,9 @@
   [project & args]
   (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
         {:keys [base-image endpoint]} options
-        options (merge (:uberimage project) options)]
+        options (merge {:base-image "pallet/java"}
+                       (:uberimage project)
+                       options)]
     (when errors
       (throw (ex-info
               (str "Invalid arguments: " (string/join " " errors))
