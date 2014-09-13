@@ -14,6 +14,10 @@ Put `[com.palletops/uberimage "0.1.5"]` into the `:plugins` vector of your
 The plugin will run 'uberjar' on your project, generate the docker
 image with your uberjar in it, and report the uuid of the generated image.
 
+Note that if you have not already pulled the base image (eg. with
+`docker pull pallet/java`), then it might take some while for the
+image generation to complete.
+
 ## Running your container
 
 Once the image is built, you can run it via docker with
