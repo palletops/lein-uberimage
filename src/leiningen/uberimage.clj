@@ -42,7 +42,9 @@
 (defn buildtar
   "Return an InputStream that will deliver a tar archive with a Dockerfile
   and the uberjar."
-  [tar-output-stream piped-output-stream standalone-filename
+  [^java.io.OutputStream tar-output-stream
+   ^java.io.OutputStream piped-output-stream
+   standalone-filename
    {:keys [files] :as options}]
   (with-open [piped-output-stream piped-output-stream
               tar-output-stream tar-output-stream]
@@ -138,7 +140,7 @@
                       (ex-info
                        (str "Error in docker build using "
                             (:endpoint options) ".  "
-                            (.getMessage (root-cause e)))
+                            (.getMessage ^Throwable (root-cause e)))
                        {:exit-code 1}
                        e))))
             s (-> resp :body last :stream)
