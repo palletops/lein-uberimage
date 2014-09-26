@@ -15,16 +15,18 @@
 
 (defn dockerfile
   "Return a dockerfile string"
-  [{:keys [cmd files base-image]}]
+  [{:keys [cmd files base-image instructions]}]
   (let [cmd (or cmd ["/usr/bin/java" "-jar" "/uberjar.jar"])
         cmd (if (sequential? cmd) cmd [cmd])
         cmd-str (->> (for [s cmd] (str "\"" s "\""))
                      (string/join ","))]
-    (->> (concat [(str "FROM " base-image)
-                  "ADD uberjar.jar uberjar.jar"
+    (->> (concat [(str "FROM " base-image)]
+                 instructions
+                 ["ADD uberjar.jar uberjar.jar"
                   (str "CMD [" cmd-str "]")]
                  (for [[tar-path local-path] files]
                    (str "ADD " tar-path " " tar-path)))
+         (filter identity)
          (string/join "\n"))))
 
 (defn buildtar
