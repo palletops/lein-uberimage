@@ -46,11 +46,16 @@ image's `CMD` and to place extra files into the image.
 
 ```clj
 :uberimage {:cmd ["/bin/dash" "/myrunscript" "param1" "param2"]
+            :instructions ["RUN apt-get update && apt-get -y dist-upgrade"]
             :files {"myrunscript" "docker/myrunscript"}
             :tag "user/repo:tag"}
 ```
 
 The `:cmd` value maps directly to a Dockerfile CMD statement
+
+The `:instructions` value specifies a list of Dockerfile instructions
+to be inserted into the generated Dockerfile immediately after
+the `FROM` instruction at the start of the Dockerfile
 
 The `:files` value is a map of additional files to be copied into the
 docker image. Keys are docker image target paths and values are lein
