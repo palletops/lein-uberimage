@@ -1,3 +1,12 @@
+## 0.3.0
+
+- Include additional instructions in Dockerfiles
+  Allow the insertion of additional Dockerfile instructions
+
+  The :instructions value is taken from the :uberimage options map in
+  project.clj and specifies a list of Dockerfile instructions to be inserted
+  immediately after the FROM instruction at the start of the Dockerfile.
+
 ## 0.2.0
 
 - Add comment on pulling base image to README
