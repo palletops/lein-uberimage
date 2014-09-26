@@ -1,4 +1,4 @@
-(defproject com.palletops/uberimage "0.2.0"
+(defproject com.palletops/uberimage "0.3.0"
   :description "Leiningen plugin to create a docker image for a project uberjar"
   :url "http://github.com/palletops/lein-uberimage"
   :license {:name "Eclipse Public License"
