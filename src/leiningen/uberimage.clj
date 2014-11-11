@@ -137,5 +137,8 @@
                        e))))
             s (-> resp :body last :stream)
             id (if s
-                 (second (re-find #"Successfully built ([0-9a-f]+)" s)))]
-        (println "Built image" id)))))
+                 (second (re-find #"Successfully built ([0-9a-f]+)" s)))
+            tag (if-let [tag (:tag options)]
+                  (str "[" tag "]")
+                  "")]
+        (println "Built image" id tag)))))
