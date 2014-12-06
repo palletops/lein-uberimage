@@ -64,7 +64,9 @@
 (def cli-options
   ;; An option with a required argument
   [["-H" "--endpoint ENDPOINT" "Endpoint for docker TCP port"
-    :default (or (System/getenv "DOCKER_ENDPOINT") "http://localhost:2375")
+    :default (or (System/getenv "DOCKER_ENDPOINT")
+                 (System/getenv "DOCKER_HOST")
+                 "http://localhost:2375")
     :validate [#(java.net.URL. %) "Must be a URL"]]
    ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
     :validate [string? "Must be a string"]]
@@ -80,7 +82,11 @@
    \newline \newline
    (:summary (parse-opts [] cli-options))
    \newline \newline
-   "The docker endpoint defaults to the DOCKER_ENDPOINT environment variable"))
+   "The docker endpoint defaults to the DOCKER_HOST environment variable."
+   \newline
+   "If you use DOCKER_HOST for something else and wish to override its"
+   \newline
+   "value, use the DOCKER_ENDPOINT environment variable."))
 
 (defn filter-api-params
   "filter API parameters, retaining only those with non-nil values"
