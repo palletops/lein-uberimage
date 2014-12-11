@@ -10,6 +10,7 @@
     :refer [tar-output-stream tar-entry-from-file tar-entry-from-string]]
    [leiningen.core.main :as main]
    [leiningen.jar :refer [get-jar-filename]]
+   [leiningen.uberimage.certs :refer [key-store]]
    [leiningen.uberjar :refer [uberjar]]
    [taoensso.timbre :as timbre :refer [merge-config! str-println]]))
 
@@ -61,19 +62,43 @@
   (if-not (System/getenv "DEBUG")
     (merge-config! info-timbre-config)))
 
+
+(defn endpoint-from-boot2docker
+  "Return an endpoint from boot2docker env vars"
+  []
+  (if-let [v (System/getenv "DOCKER_HOST")]
+    (let [tls-verify (System/getenv "DOCKER_TLS_VERIFY")
+          tls (System/getenv "DOCKER_TLS")]
+      (if (.startsWith v "tcp:")
+        (let [ssl (or tls-verify (not= tls "no"))]
+          {:endpoint (str (if ssl "https" "http") (subs v 3))
+           :ssl ssl
+           :verify (not= tls-verify "0")
+           :cert-path (System/getenv "DOCKER_CERT_PATH")})
+        (main/warn "Ignoring DOCKER_HOST: unsupported protocol")))))
+
+
+
 (def cli-options
-  ;; An option with a required argument
-  [["-H" "--endpoint ENDPOINT" "Endpoint for docker TCP port"
-    :default (or (System/getenv "DOCKER_ENDPOINT")
-                 (System/getenv "DOCKER_HOST")
-                 "http://localhost:2375")
-    :validate [#(java.net.URL. %) "Must be a URL"]]
-   ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
-    :validate [string? "Must be a string"]]
-   ["-t" "--tag TAG"
-    (str "Repository name (and optionally a tag) to be applied to the "
-         "resulting image in case of success")
-    :validate [string? "Must be a string"]]])
+  (let [b2d-endpoint (endpoint-from-boot2docker)]
+    ;; An option with a required argument
+    [["-H" "--endpoint ENDPOINT" "Endpoint for docker TCP port"
+      :default (or (System/getenv "DOCKER_ENDPOINT")
+                   (if b2d-endpoint (:endpoint b2d-endpoint))
+                   "http://localhost:2375")
+      :validate [#(java.net.URL. %) "Must be a URL"]]
+     ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
+      :validate [string? "Must be a string"]]
+     ["-t" "--tag TAG"
+      (str "Repository name (and optionally a tag) to be applied to the "
+           "resulting image in case of success")
+      :validate [string? "Must be a string"]]
+     ["-T" "--tlsverify TLSVERIFY"
+      "Use TLS and verify the remote"
+      :default (:verify b2d-endpoint)]
+     ["-C" "--cert-path CERT-PATH"
+      "Patch to client certs"
+      :default (:cert-path b2d-endpoint)]]))
 
 (defn help
   []
@@ -108,6 +133,7 @@
               {:cli-options cli-options
                :args args
                :exit-code 1})))
+    (main/debug "options" options)
     (configure-logging)
     (let [{:keys [piped-input-stream piped-output-stream tar-output-stream]}
           (tar-output-stream)
@@ -118,7 +144,9 @@
                         (.printStackTrace e))
                       (throw
                        (ex-info "Uberimage aborting because uberjar failed:"
-                                {} e))))]
+                                {} e))))
+          keystore (if-let [cert-path (:cert-path options)]
+                     (key-store cert-path))]
       (main/info "Using jar file" jarfile)
       (when (or (nil? jarfile) (not (.exists (file jarfile))))
         (throw (ex-info "Jar file does not exist" {:exit-code 1})))
@@ -128,9 +156,15 @@
          piped-output-stream
          jarfile
          options))
-      (let [resp (try
+      (let [ks-pw "" ; (into-array java.lang.Character/TYPE "")
+            resp (try
                    (build
-                    {:url (:endpoint options)}
+                    {:url (:endpoint options)
+                     :insecure? (= "0" (:tlsverify options))
+                     :keystore keystore
+                     :keystore-pass ks-pw
+                     :trust-store keystore
+                     :trust-store-pass ks-pw}
                     (filter-api-params {:body piped-input-stream
                                         :t (:tag options)}))
                    (catch java.net.ConnectException e
