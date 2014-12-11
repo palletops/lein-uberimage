@@ -1,6 +1,5 @@
 (ns leiningen.uberimage
   (:require
-   [clojure.core.async :refer [thread]]
    [clojure.java.io :refer [copy file]]
    [clojure.stacktrace :refer [root-cause]]
    [clojure.string :as string]
@@ -119,6 +118,10 @@
   (->> params
        (filter (fn [[k v]] v))
        (into {})))
+
+(defmacro thread [body]
+  `(-> (Thread. (fn [] ~body))
+       .start))
 
 (defn ^{:doc (help)} uberimage
   [project & args]
