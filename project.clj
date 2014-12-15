@@ -5,8 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :eval-in-leiningen true
   :min-lein-version "2.4.3"
-  :dependencies [[com.palletops/clj-docker "0.1.3"]
-                 [org.clojure/data.codec "0.1.0"]
+  :dependencies [[com.palletops/clj-docker "0.2.0"]
                  [org.clojure/tools.cli "0.3.1"]
-                 [net.oauth.core/oauth "20100527"]]
+                 [net.oauth.core/oauth "20100527"]
+                 [clj-time "0.8.0"]]
   :global-vars {*warn-on-reflection* true})

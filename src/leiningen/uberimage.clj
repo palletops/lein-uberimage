@@ -5,13 +5,16 @@
    [clojure.string :as string]
    [clojure.tools.cli :refer [parse-opts]]
    [com.palletops.docker :refer [build image-create]]
+   [com.palletops.docker.identity-auth :refer [server-cert]]
+   [com.palletops.docker.keystore :refer [add-cert key-store key-store-jwk]]
    [com.palletops.docker.utils
     :refer [tar-output-stream tar-entry-from-file tar-entry-from-string]]
    [leiningen.core.main :as main]
    [leiningen.jar :refer [get-jar-filename]]
-   [leiningen.uberimage.certs :refer [key-store]]
    [leiningen.uberjar :refer [uberjar]]
-   [taoensso.timbre :as timbre :refer [merge-config! str-println]]))
+   [taoensso.timbre :as timbre :refer [merge-config! str-println]])
+  (:import
+   [java.net URL]))
 
 (defn dockerfile
   "Return a dockerfile string"
@@ -62,28 +65,28 @@
     (merge-config! info-timbre-config)))
 
 
-(defn endpoint-from-boot2docker
+(defn endpoint-from-env
   "Return an endpoint from boot2docker env vars"
   []
   (if-let [v (System/getenv "DOCKER_HOST")]
     (let [tls-verify (System/getenv "DOCKER_TLS_VERIFY")
-          tls (System/getenv "DOCKER_TLS")]
+          tls (System/getenv "DOCKER_TLS")
+          auth (System/getenv "DOCKER_AUTH")]
       (if (.startsWith v "tcp:")
-        (let [ssl (or tls-verify (not= tls "no"))]
+        (let [ssl (or tls-verify (and auth (not= auth "none")) (not= tls "no"))]
           {:endpoint (str (if ssl "https" "http") (subs v 3))
            :ssl ssl
-           :verify (not= tls-verify "0")
-           :cert-path (System/getenv "DOCKER_CERT_PATH")})
+           :verify (not= tls-verify "0")})
         (main/warn "Ignoring DOCKER_HOST: unsupported protocol")))))
 
 
 
 (def cli-options
-  (let [b2d-endpoint (endpoint-from-boot2docker)]
+  (let [env-endpoint (endpoint-from-env)]
     ;; An option with a required argument
     [["-H" "--endpoint ENDPOINT" "Endpoint for docker TCP port"
       :default (or (System/getenv "DOCKER_ENDPOINT")
-                   (if b2d-endpoint (:endpoint b2d-endpoint))
+                   (if env-endpoint (:endpoint env-endpoint))
                    "http://localhost:2375")
       :validate [#(java.net.URL. %) "Must be a URL"]]
      ["-b" "--base-image BASE-IMAGE" "Base image to use for the image"
@@ -94,10 +97,9 @@
       :validate [string? "Must be a string"]]
      ["-T" "--tlsverify TLSVERIFY"
       "Use TLS and verify the remote"
-      :default (:verify b2d-endpoint)]
-     ["-C" "--cert-path CERT-PATH"
-      "Patch to client certs"
-      :default (:cert-path b2d-endpoint)]]))
+      :default (:verify env-endpoint)]
+     ["-C" "--cert-path CERT-PATH" "Patch to client certs"]
+     ["-J" "--jwk JWK-PATH" "Patch to json key file"]]))
 
 (defn help
   []
@@ -123,10 +125,18 @@
   `(-> (Thread. (fn [] ~body))
        .start))
 
+:cert-path (System/getenv "DOCKER_CERT_PATH")
+:jwk-path (file (System/getProperty "user.home") ".docker" "key.json")
+
 (defn ^{:doc (help)} uberimage
   [project & args]
   (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
         {:keys [base-image endpoint]} options
+        use-cert (cond
+                  (:jwk-path options) :jwk-path
+                  (:cert-path options) :cert-path
+                  (= (System/getenv "DOCKER_AUTH") "identity") :jwk-path
+                  (System/getenv "DOCKER_CERT_PATH") :cert-path)
         options (merge {:base-image "pallet/java"}
                        (:uberimage project)
                        options)]
@@ -148,8 +158,24 @@
                       (throw
                        (ex-info "Uberimage aborting because uberjar failed:"
                                 {} e))))
-          keystore (if-let [cert-path (:cert-path options)]
-                     (key-store cert-path))]
+          [ks-path keystore] (condp = use-cert
+                               :cert-path (key-store
+                                           (:cert-path
+                                            options
+                                            (System/getenv "DOCKER_CERT_PATH")))
+                               :jwk-path (key-store-jwk
+                                          (:jwk-path
+                                           options
+                                           (str (file
+                                                 (System/getProperty "user.home")
+                                                 ".docker" "key.json")))))
+          ts-path ks-path
+          ks-pw ""]
+      (when (= use-cert :jwk-path)
+        (let [url (URL. (:endpoint options))
+              cert (server-cert (.getHost url) (.getPort url)
+                                keystore (.toCharArray ks-pw))]
+          (add-cert ks-path keystore cert)))
       (main/info "Using jar file" jarfile)
       (when (or (nil? jarfile) (not (.exists (file jarfile))))
         (throw (ex-info "Jar file does not exist" {:exit-code 1})))
@@ -159,17 +185,19 @@
          piped-output-stream
          jarfile
          options))
-      (let [ks-pw "" ; (into-array java.lang.Character/TYPE "")
+      (let [ep {:url (:endpoint options)
+                :insecure? (or (= "0" (:tlsverify options))
+                               (= :jwk-path use-cert))
+                ;; We use paths, as leiningen depends on clj-http 0.9.2, before
+                ;; the feature allowing passing of keystore objects.
+                :keystore ks-path
+                :keystore-pass ks-pw
+                :trust-store ts-path
+                :trust-store-pass ks-pw}
+            req (filter-api-params {:body piped-input-stream
+                                    :t (:tag options)})
             resp (try
-                   (build
-                    {:url (:endpoint options)
-                     :insecure? (= "0" (:tlsverify options))
-                     :keystore keystore
-                     :keystore-pass ks-pw
-                     :trust-store keystore
-                     :trust-store-pass ks-pw}
-                    (filter-api-params {:body piped-input-stream
-                                        :t (:tag options)}))
+                   (build ep req)
                    (catch java.net.ConnectException e
                      (throw
                       (ex-info
