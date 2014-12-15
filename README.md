@@ -6,7 +6,7 @@ Requires _leiningen 2.4.3 or later_.
 
 ## Usage
 
-Put `[com.palletops/uberimage "0.3.0"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.4.0"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage
@@ -71,11 +71,14 @@ the project image is built (defaults to `pallet/java`).
 
 By default, the docker API is assumed to be on
 `http://localhost:2375`.  You can override this by setting the
-`DOCKER_ENDPOINT` environment variable, or using the `-H` option, e.g.
+the `DOCKER_HOST` environment variable, or using the `-H` option, e.g.
 
 ```
 lein uberimage -H http://localhost:4243
 ```
+
+If you have `DOCKER_HOST` set, but don't want that value used,
+override it with the `DOCKER_ENDPOINT` environment variable.
 
 The base image used to construct the image can be specified using
 `-b`.

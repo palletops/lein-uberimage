@@ -1,3 +1,23 @@
+## 0.4.0
+
+- Add support for https and auth identity
+  Allows use of DOCKER_CERT_PATH for TLS credentials to use for DOCKER_HOST,
+  as used by boot2docker.
+
+  This also allows for DOCKER_AUTH=identity, as used by nodes started by 
+  docker machine.
+
+- Remove core.async dependency
+  Fixes #21
+
+- Use DOCKER_CERT_PATH to find client cert
+
+- Use DOCKER_HOST to specify endpoint
+  For consistency with boot2docker, use the DOCKER_HOST environment variable
+  to specify the endpoint.  DOCKER_ENDPOINT will still override DOCKER_HOST.
+
+- Show the tag in 'Built image' output, if supplied.
+
 ## 0.3.0
 
 - Include additional instructions in Dockerfiles
