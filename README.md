@@ -6,7 +6,7 @@ Requires _leiningen 2.4.3 or later_.
 
 ## Usage
 
-Put `[com.palletops/uberimage "0.4.0"]` into the `:plugins` vector of your
+Put `[com.palletops/uberimage "0.4.1"]` into the `:plugins` vector of your
 `:user` profile.
 
     $ lein uberimage

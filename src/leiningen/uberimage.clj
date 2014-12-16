@@ -73,7 +73,10 @@
           tls (System/getenv "DOCKER_TLS")
           auth (System/getenv "DOCKER_AUTH")]
       (if (.startsWith v "tcp:")
-        (let [ssl (or tls-verify (and auth (not= auth "none")) (not= tls "no"))]
+        (let [ssl (or tls-verify
+                      (and (not= auth "none")
+                           (or auth
+                               (not= tls "no"))))]
           {:endpoint (str (if ssl "https" "http") (subs v 3))
            :ssl ssl
            :verify (not= tls-verify "0")})
@@ -168,7 +171,8 @@
                                            options
                                            (str (file
                                                  (System/getProperty "user.home")
-                                                 ".docker" "key.json")))))
+                                                 ".docker" "key.json"))))
+                               nil)
           ts-path ks-path
           ks-pw ""]
       (when (= use-cert :jwk-path)

@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Fix non https connections
+
 ## 0.4.0
 
 - Add support for https and auth identity
