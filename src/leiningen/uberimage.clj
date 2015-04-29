@@ -18,15 +18,22 @@
 
 (defn dockerfile
   "Return a dockerfile string"
-  [{:keys [cmd files base-image instructions]}]
-  (let [cmd (or cmd ["/usr/bin/java" "-jar" "/uberjar.jar"])
-        cmd (if (sequential? cmd) cmd [cmd])
-        cmd-str (->> (for [s cmd] (str "\"" s "\""))
-                     (string/join ","))]
+  [{:keys [cmd files base-image instructions] :as args }]
+  (let [cmd-str (->> (for [s (if (sequential? cmd) cmd [cmd])] (str "\"" s "\""))
+                     (string/join ","))
+        ;; if an explicit entrypoint supplied, use it, if the supplied
+        ;; value is nil don't add an entrypoint, otherwise default to
+        ;; running the uberjar as entrypoint.
+        entrypoint (if (contains? args :entrypoint)
+                     (:entrypoint args)
+                     ["/usr/bin/java" "-jar" "/uberjar.jar"])
+        entrypoint-str (->> (for [s entrypoint] (str "\"" s "\""))
+                            (string/join ","))]
     (->> (concat [(str "FROM " base-image)]
                  instructions
-                 ["ADD uberjar.jar uberjar.jar"
-                  (str "CMD [" cmd-str "]")]
+                 ["ADD uberjar.jar uberjar.jar"]
+                 (when entrypoint [(str "ENTRYPOINT [" entrypoint-str "]")])
+                 (when cmd [(str "CMD [" cmd-str "]")])
                  (for [[tar-path local-path] files]
                    (str "ADD " tar-path " " tar-path)))
          (filter identity)

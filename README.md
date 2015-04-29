@@ -42,16 +42,21 @@ to listen to on the host. Then, open your browser and type
 ## Configuration
 
 The `project.clj` `:uberimage` key can be used to configure the
-image's `CMD` and to place extra files into the image.
+image's `ENTRYPOINT`,  `CMD` and to place extra files into the image.
 
 ```clj
-:uberimage {:cmd ["/bin/dash" "/myrunscript" "param1" "param2"]
+:uberimage {:entrypoint ["/bin/dash", "/myrunscript"]
+            :cmd ["param1", "param2"]
             :instructions ["RUN apt-get update && apt-get -y dist-upgrade"]
             :files {"myrunscript" "docker/myrunscript"}
             :tag "user/repo:tag"}
+
 ```
 
-The `:cmd` value maps directly to a Dockerfile CMD statement
+The `:entrypoint` and `:cmd` value maps directly to the equivalent
+Dockerfile statement. The `:entrypoint` value defaults to running the
+uberjar with no arguments. Supplying a nil value for the `:entrypoint`
+implies that no `ENTRYPOINT` entry should be added to the Dockerfile.
 
 The `:instructions` value specifies a list of Dockerfile instructions
 to be inserted into the generated Dockerfile immediately after
