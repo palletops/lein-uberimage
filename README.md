@@ -62,7 +62,9 @@ docker image. Keys are docker image target paths and values are lein
 project source paths.
 
 The `:tag` value supplies a repository name (and optionally a tag) to
-be applied to the resulting image in case of success.
+be applied to the resulting image in case of success. If `:project-version-tag`
+is set to `true`, the Leiningen project version is used as the tag.
+In this case, the `:tag` value refers only to the repository name.
 
 The `:base-image` value is used to specify the base image from which
 the project image is built (defaults to `pallet/java`).
@@ -92,6 +94,13 @@ resulting image in case of success can be specified using `-t`.
 
 ```
 lein uberimage -t user/repo:tag
+```
+
+The Leiningen project version can be used as the image tag
+via the `-p` option.
+
+```
+lein uberimage -t user/repo -p
 ```
 
 ## Limitations

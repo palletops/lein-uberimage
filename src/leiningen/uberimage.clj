@@ -98,6 +98,9 @@
       (str "Repository name (and optionally a tag) to be applied to the "
            "resulting image in case of success")
       :validate [string? "Must be a string"]]
+     ["-p" "--project-version-tag"
+      (str "Use the Leiningen project version as the image tag. "
+           "The repository name is then specified with -t.")]
      ["-T" "--tlsverify TLSVERIFY"
       "Use TLS and verify the remote"
       :default (:verify env-endpoint)]
@@ -199,7 +202,9 @@
                 :trust-store ts-path
                 :trust-store-pass ks-pw}
             req (filter-api-params {:body piped-input-stream
-                                    :t (:tag options)})
+                                    :t (if (:project-version-tag options)
+                                         (str (:tag options) ":" (:version project))
+                                         (:tag options))})
             resp (try
                    (build ep req)
                    (catch java.net.ConnectException e
